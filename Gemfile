@@ -51,3 +51,5 @@ group :test do
 end
 
 gem 'dotenv-rails', groups: [:development, :test, :production]
+
+gem "tailwindcss-rails", "~> 2.7"
