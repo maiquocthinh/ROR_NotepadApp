@@ -1,0 +1,23 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id: MyString
+  content: MyText
+  slug: MyString
+  external_slug: MyString
+  views: 1
+  need_password: false
+  hash_password: MyString
+  temporary: false
+  user: one
+
+two:
+  id: MyString
+  content: MyText
+  slug: MyString
+  external_slug: MyString
+  views: 1
+  need_password: false
+  hash_password: MyString
+  temporary: false
+  user: two

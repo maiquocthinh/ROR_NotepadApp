@@ -20,8 +20,13 @@ module NotepadApp
     #
     # These settings can be overridden in specific environments using the files
     # in config/environments, which are processed later.
-    #
-    # config.time_zone = "Central Time (US & Canada)"
+
+    # Set the time zone for your application
+    config.time_zone = "Asia/Ho_Chi_Minh"
+
+    # Ensure ActiveRecord stores times in UTC in the database
+    config.active_record.default_timezone = :utc
+
     # config.eager_load_paths << Rails.root.join("extras")
   end
 end
