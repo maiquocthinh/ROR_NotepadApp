@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="NotepadApp" type="RailsRunConfigurationType" factoryName="Rails">
+  <configuration default="false" name="NotepadApp - Dev" type="RailsRunConfigurationType" factoryName="Rails">
     <module name="NotepadApp" />
     <predefined_log_file enabled="true" id="RUBY_RAILS_SERVER" />
     <RAILS_SERVER_CONFIG_SETTINGS_ID NAME="RUBY_ARGS" VALUE="" />
