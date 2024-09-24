@@ -56,3 +56,4 @@ gem "tailwindcss-rails", "~> 2.7"
 
 gem 'nanoid'
 
+gem 'bcrypt', '~> 3.1'

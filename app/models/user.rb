@@ -2,6 +2,7 @@ require "nanoid"
 
 class User < ApplicationRecord
   before_create :generate_id
+  before_save :downcase_email_and_username
 
   has_many :backup_notes, dependent: :destroy
   has_many :notes, dependent: :destroy
@@ -18,4 +19,10 @@ class User < ApplicationRecord
       self.id = IdGenerator.generate_user_id
     end
   end
+
+  def downcase_email_and_username
+    self.email = email.downcase
+    self.username = username.downcase
+  end
+
 end

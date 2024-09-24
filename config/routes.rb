@@ -15,7 +15,9 @@ Rails.application.routes.draw do
   # Panel routes
   get "/panel" => "panel#index"
   get "/panel/login" => "panel#login"
+  post "/panel/login" => "panel#login_handler"
   get "/panel/register" => "panel#register"
+  post "/panel/register" => "panel#register_handler"
   get "/panel/forgot" => "panel#forgot"
   get "/panel/reset-password/:token" => "panel#reset_password"
   get "/panel/captcha" => "panel#captcha"
