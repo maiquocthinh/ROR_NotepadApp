@@ -59,3 +59,6 @@ gem 'nanoid'
 gem 'bcrypt', '~> 3.1'
 
 gem 'redis-rails'
+
+gem 'jwt'
+

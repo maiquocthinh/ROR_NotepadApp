@@ -19,7 +19,9 @@ Rails.application.routes.draw do
   get "/panel/register" => "panel#register"
   post "/panel/register" => "panel#register_handler"
   get "/panel/forgot-password" => "panel#forgot_password", as: :panel_forgot_password
+  post "/panel/forgot-password" => "panel#forgot_password_handler"
   get "/panel/reset-password/:token" => "panel#reset_password", as: :panel_reset_password
+  post "/panel/reset-password/:token" => "panel#reset_password_handler"
   get "/panel/captcha" => "panel#captcha"
   get "/panel/*path" => redirect("/panel")
 
