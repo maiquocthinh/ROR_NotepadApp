@@ -1,2 +1,135 @@
-<h1 class="text-4xl ">Page: Note Write</h1>
-<p>Slug: <%= @slug %></p>
+<div class="m-auto my-2 md:my-8 max-w-5xl h-full">
+  <div class="c-main-area border-solid border-1 border-gray-300">
+    <div class="-m-1 sm:-m-2 md:-m-5 flex flex-col h-[106%]">
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg inline-flex items-center gap-1 text-zinc-500 hover:text-teal-600 cursor-default transition duration-500">
+          <%= render 'shared/svg/notebook' %>
+          <span class="font-medium">Note<b>Pad</b></span>
+        </h3>
+        <div class="flex items-center gap-3 md:gap-8 mr-0 md:mr-6">
+          <a class="cursor-pointer hover:text-teal-600" href="/">
+            <%= render 'shared/svg/new_note' %>
+          </a>
+          <span class="cursor-pointer hover:text-teal-600" onclick="toggleModal('modal_password')">
+            <%= render 'shared/svg/password' %>
+          </span>
+          <span class="cursor-pointer hover:text-teal-600" onclick="toggleModal('modal_url')">
+            <%= render 'shared/svg/url' %>
+          </span>
+          <a class="cursor-pointer hover:text-teal-600" href="/panel">
+            <%= render 'shared/svg/user' %>
+          </a>
+        </div>
+      </div>
+      <hr class="mt-2 mb-4">
+      <div class="flex-grow relative">
+        <textarea class="w-full min-h-[70vh] md:min-h-[60vh] h-[100%] outline-none resize-none mx-1 text-base leading-none" spellcheck="false" id="note_textarea"><%= @note.content %></textarea>
+        <div class="flex items-center gap-1 absolute bottom-0 right-0">
+          <button class="c-btn-outline-sm py-1" title="Full Screen" onclick="toggleFullscreen()">
+            <%= render 'shared/svg/expansion' %>
+          </button>
+          <button class="c-btn-outline-sm py-1" title="Increase font-size" onclick="increaseFontsize()">
+            <%= render 'shared/svg/plus' %>
+          </button>
+          <button class="c-btn-outline-sm py-1" title="Decrease font-size" onclick="decreaseFontsize()">
+            <%= render 'shared/svg/minus' %>
+          </button>
+        </div>
+      </div>
+      <hr class="my-4">
+      <div class="flex flex-col items-center gap-1">
+        <div class="flex items-center gap-2">
+          <button class="c-btn-outline-sm text-sm" onclick="copyTextToClipboard(location.href)">
+            <%= render 'shared/svg/small_url' %>
+            Editable Link
+          </button>
+          <div class="dropdown relative flex">
+            <button class="c-btn-outline-sm text-sm flex-grow" onclick="toggleDropdown(event)">
+              <%= render 'shared/svg/share' %>
+              Share Link
+            </button>
+            <div class="dropdown_box flex flex-col gap-2 min-w-[140px] w-fit z-10 shadow rounded whitespace-nowrap bg-white border-solid border-1 border-gray-400 absolute bottom-7 left-0 px-3 py-2 hidden">
+              <a class="c-a text-sm" href="/share/<%= @note.external_slug %>" target="_blank">Share(only view)</a>
+              <a class="c-a text-sm" href="/raw/<%= @note.external_slug %>" target="_blank">Raw</a>
+              <a class="c-a text-sm" href="/markdown/<%= @note.external_slug %>" target="_blank">Markdown</a>
+              <a class="c-a text-sm" href="/code/<%= @note.external_slug %>" target="_blank">Code</a>
+            </div>
+            <div class="dropdown_overplay z-9 w-[100vw] h-[100vh] fixed top-0 left-0 bg-transparent hidden" onclick="toggleDropdown(event)"></div>
+          </div>
+        </div>
+        <p class="text-sm">
+          <b>Words:</b> <span id="word_count"><%= @note.content&.scan(/\S+/)&.length || 0 %></span>
+          | <b>Chars:</b> <span id="char_count"><%= @note.content&.length || 0 %></span>
+          <% unless @note.temporary %>
+            | <b>Views:</b> <span id="view_count"><%= @note.views %></span>
+          <% end %>
+        </p>
+        <% unless @note.temporary %>
+          <small><b>Last Updated:</b> <%= TimeUtils::calculate_elapsed_time(@note.updated_at) %></small>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Modal Password Options -->
+    <div id="modal_password">
+      <div class="modal_popup hidden min-w-[300px] z-10 bg-gray-100 fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded shadow drop-shadow px-4 py-2">
+        <!-- header -->
+        <div class="flex justify-between">
+          <h3 class="text-base">Password Options</h3>
+          <span class="modal_close c-btn-sm">&times;</span>
+        </div>
+        <!-- body -->
+        <hr class="my-3">
+        <div>
+          <!-- Password -->
+          <input class="c-input password-input <%= @note.need_password ? 'hidden-force' : '' %>" placeholder="Password" name="password" type="password">
+          <!-- Remove Password  -->
+          <div class="flex justify-evenly <%= !@note.need_password ? 'hidden-force' : '' %>">
+            <button class="c-btn remove-pass-btn">
+              <%= render 'shared/svg/close' %>
+              Remove
+            </button>
+            <button class="c-btn note-logout-btn">
+              <%= render 'shared/svg/logout' %>
+              Logout
+            </button>
+          </div>
+        </div>
+        <hr class="my-3">
+        <!-- footer -->
+        <div class="flex justify-between <%= @note.need_password ? 'hidden-force' : '' %>">
+          <button class="modal_close c-btn-outline">Cancel</button>
+          <button class="c-btn set-pass-btn">Set</button>
+        </div>
+      </div>
+      <div class="modal_overplay modal_close hidden z-9 w-[100vw] h-[100vh] fixed top-0 left-0 bg-transparent"></div>
+    </div>
+
+    <!-- Modal change url -->
+    <div id="modal_url">
+      <div class="modal_popup hidden min-w-[300px] z-10 bg-gray-100 fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded shadow drop-shadow px-4 py-2">
+        <form action="" onsubmit="changeSlug(event)">
+          <!-- header -->
+          <div class="flex justify-between">
+            <h3 class="text-base">Change Url</h3>
+            <span class="modal_close c-btn-sm">&times;</span>
+          </div>
+          <!-- body -->
+          <hr class="my-3">
+          <div>
+            <input class="c-input" maxlength="20" name="slug" placeholder="URL" type="text" value="<%= @note.slug %>">
+          </div>
+          <hr class="my-3">
+          <!-- footer -->
+          <div class="flex justify-between">
+            <button class="modal_close c-btn-outline">Cancel</button>
+            <button class="c-btn" type="submit">Change</button>
+          </div>
+        </form>
+      </div>
+      <div class="modal_overplay modal_close hidden z-9 w-[100vw] h-[100vh] fixed top-0 left-0 bg-transparent"></div>
+    </div>
+  </div>
+</div>
+<%= javascript_include_tag 'app', 'data-turbolinks-track': 'reload' %>
+<%= javascript_include_tag 'panel', 'data-turbolinks-track': 'reload' %>

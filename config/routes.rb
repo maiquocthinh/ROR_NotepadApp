@@ -26,8 +26,8 @@ Rails.application.routes.draw do
   get "/panel/*path" => redirect("/panel")
 
   # App routes
-  get "/" => "app#index"
-  get "/:slug" => "app#note_write", as: :write_page
+  get "/" => "app#note_write"
+  get "/:slug" => "app#note_write"
   get "/login/:slug" => "app#note_login"
   get "/login/:share_type/:external_slug" => "app#note_login"
   get "/share/:external_slug" => "app#note_share"
