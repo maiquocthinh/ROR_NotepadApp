@@ -86,7 +86,7 @@
           <!-- Remove Password  -->
           <div class="flex justify-evenly <%= !@note.need_password ? 'hidden-force' : '' %>">
             <button class="c-btn remove-pass-btn">
-              <%= render 'shared/svg/close' %>
+              <%= render 'shared/svg/circel_minus' %>
               Remove
             </button>
             <button class="c-btn note-logout-btn">
@@ -131,5 +131,6 @@
     </div>
   </div>
 </div>
+<script>const NOTE_ID = '<%= @note.id %>';</script>
 <%= javascript_include_tag 'app', 'data-turbolinks-track': 'reload' %>
 <%= javascript_include_tag 'panel', 'data-turbolinks-track': 'reload' %>

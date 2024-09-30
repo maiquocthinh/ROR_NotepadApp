@@ -1,4 +1,8 @@
 class AppController < ApplicationController
+  include AccessChecker
+
+  before_action :check_note_password_requirement, only: [:note_write]
+  before_action :check_note_access, only: [:note_login]
 
   def note_write
     slug = params[:slug]
@@ -12,9 +16,25 @@ class AppController < ApplicationController
   end
 
   def note_login
-    @slug = params[:slug]
-    @share_type = params[:share_type]
-    @external_slug = params[:external_slug]
+    slug = params[:slug]
+    external_slug = params[:external_slug]
+    share_type = params[:share_type]
+
+    if slug.present?
+      note = Note.find_by_slug(slug)
+      if note.nil?
+        return redirect_to "/#{slug}"
+      end
+
+      render :note_login, locals: { slug: slug }
+    else
+      note = Note.find_by_external_slug(external_slug)
+      if note.nil?
+        return redirect_to "/#{external_slug}"
+      end
+
+      render :note_login, locals: { external_slug: external_slug, share_type: share_type }
+    end
   end
 
   def note_share

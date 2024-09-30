@@ -1,4 +1,70 @@
-<h1 class="text-4xl ">Page: Note Login</h1>
-<p><%= @slug %></p>
-<p><%= @share_type %></p>
-<p><%= @external_slug %></p>
+<div class="m-auto my-8 max-w-fit">
+  <div class="c-main-area">
+    <div class="flex flex-col gap-3 items-center">
+      <%= render 'shared/svg/lock' %>
+      <input class="c-input text-center placeholder:text-center" type="password" id="password" placeholder="Password" />
+      <button class="c-btn" id="login-btn">Login</button>
+    </div>
+  </div>
+</div>
+
+<% if defined?(slug) %>
+  <script>
+      const NOTE_SLUG = '<%= slug %>';
+      const passwordInput = document.getElementById('password');
+      const loginBtn = document.getElementById('login-btn');
+
+      loginBtn.onclick = function(){
+          const password = passwordInput.value;
+
+          fetch('/api/note/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ slug: NOTE_SLUG, password }),
+          }).then(function (response) {
+              if (response.ok) {
+                  window.location.href = '/' + NOTE_SLUG;
+              } else {
+                  response.json().then(function (result) {
+                      if (result.errors) {
+                          alert(result.errors.join('\n'));
+                      } else if (result.error) {
+                          alert(result.error);
+                      }
+                  });
+              }
+          });
+      }
+  </script>
+<% end %>
+
+<% if defined?(external_slug) %>
+  <script>
+      const NOTE_EXTERNAL_SLUG = '<%= external_slug %>';
+      const SHARE_TYPE = '<%= share_type %>';
+      const passwordInput = document.getElementById('password');
+      const loginBtn = document.getElementById('login-btn');
+
+      loginBtn.onclick = function(){
+          const password = passwordInput.value;
+
+          fetch('/api/note/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ externalSlug: NOTE_EXTERNAL_SLUG, password }),
+          }).then(function (response) {
+              if (response.ok) {
+                  window.location.href = `/${SHARE_TYPE}/${NOTE_EXTERNAL_SLUG}`;
+              } else {
+                  response.json().then(function (result) {
+                      if (result.errors) {
+                          alert(result.errors.join('\n'));
+                      } else if (result.error) {
+                          alert(result.error);
+                      }
+                  });
+              }
+          });
+      }
+  </script>
+<% end %>
