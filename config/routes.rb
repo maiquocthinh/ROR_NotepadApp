@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   post "/panel/forgot-password" => "panel#forgot_password_handler"
   get "/panel/reset-password/:token" => "panel#reset_password", as: :panel_reset_password
   post "/panel/reset-password/:token" => "panel#reset_password_handler"
+  get "/panel/logout" => "panel#logout"
   get "/panel/captcha" => "panel#captcha"
   get "/panel/*path" => redirect("/panel")
 
@@ -50,11 +51,6 @@ Rails.application.routes.draw do
   get "/api/backup-note/download/:backup_note_id" => "api#backup_note_download"
 
   post "/api/auth/revoke-session" => "api#auth_revoke_session"
-  post "/api/auth/login" => "api#auth_login"
-  post "/api/auth/register" => "api#auth_register"
-  delete "/api/auth/logout" => "api#auth_logout"
-  delete "/api/auth/forgot" => "api#auth_forgot_password"
-  delete "/api/auth/reset-password/:token" => "api#auth_reset_password"
 
   patch "/api/user" => "api#user_update"
 end

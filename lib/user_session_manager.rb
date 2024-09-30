@@ -6,7 +6,7 @@ module UserSessionManager
     expire_in = get_expire_time_in(redis_session_key).to_i
     expire_at = Time.now.to_i + expire_in
     $redis.zadd(get_redis_user_sessions_key(user_id), expire_at, session_id)
-    $redis.expire(get_redis_user_sessions_key(user_id), expire_in) if expire_in > 0
+    # $redis.expire(get_redis_user_sessions_key(user_id), expire_in) if expire_in > 0
 
     remove_expired_sessions(user_id)
   end
@@ -18,9 +18,10 @@ module UserSessionManager
     sessions_data = $redis.mget(redis_session_keys)
 
     sessions_data.each_with_index.map do |session, index|
+      next if session.nil?
       session_data = Marshal.load(session)
       session_data.merge("session_id" => session_ids[index])
-    end
+    end.compact
   end
 
   def self.destroy_session(user_id, session_id)

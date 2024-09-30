@@ -116,53 +116,156 @@ class ApiController < ApplicationController
   end
 
   def note_delete
-    render plain: "note_delete"
+    note_id = params[:note_id]
+
+    if note_id.blank?
+      render json: { error: 'Delete note fail!' }, status: :bad_request
+      return
+    end
+
+    note = Note.find_by(id: note_id)
+
+    if note
+      note.destroy
+      render json: { message: 'Delete note success' }, status: :ok
+    else
+      render json: { error: 'Note not found' }, status: :bad_request
+    end
+  rescue StandardError => e
+    render json: { error: e.message }, status: :internal_server_error
   end
 
   def note_backup
-    render plain: "note_backup"
+    user_id = session[:user]["id"]
+    note_id = params[:note_id]
+
+    if note_id.blank?
+      render json: { error: 'Backup note fail!' }, status: :bad_request
+      return
+    end
+
+    note = Note.find_by(id: note_id)
+
+    if note.nil?
+      render json: { error: 'Backup note fail!' }, status: :bad_request
+      return
+    end
+
+    BackupNote.create!(content: note.content, user_id: user_id)
+
+    render json: { message: 'Backup note success' }, status: :ok
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { error: e.message }, status: :unprocessable_entity
+  rescue StandardError => e
+    render json: { error: e.message }, status: :internal_server_error
+
   end
 
   def note_download
-    render plain: "note_download"
+    note_id = params[:note_id]
+
+    if note_id.blank?
+      render json: { error: 'Download backup note fail!' }, status: :bad_request
+      return
+    end
+
+    backup_note = Note.find_by(id: note_id)
+
+    if backup_note.nil?
+      render json: { error: 'Download backup note fail!' }, status: :not_found
+      return
+    end
+
+    # send download as .txt
+    send_data backup_note.content, filename: "#{backup_note.id}.txt", type: 'text/plain'
+  rescue StandardError => e
+    render json: { error: e.message }, status: :internal_server_error
   end
 
   # Backup note actions
   def backup_note_delete
-    render plain: "backup_note_delete"
+    backup_note_id = params[:backup_note_id]
+
+    if backup_note_id.blank?
+      render json: { error: 'Delete backup note fail!' }, status: :bad_request
+      return
+    end
+
+    backup_note = BackupNote.find_by(id: backup_note_id)
+
+    if backup_note
+      backup_note.destroy
+      render json: { message: 'Delete backup note success' }, status: :ok
+    else
+      render json: { error: 'Backup Note not found' }, status: :bad_request
+    end
+  rescue StandardError => e
+    render json: { error: e.message }, status: :internal_server_error
   end
 
   def backup_note_download
-    render plain: "backup_note_download"
+    backup_note_id = params[:backup_note_id]
+
+    if backup_note_id.blank?
+      render json: { error: 'Download backup note fail!' }, status: :bad_request
+      return
+    end
+
+    backup_note = BackupNote.find_by(id: backup_note_id)
+
+    if backup_note.nil?
+      render json: { error: 'Download backup note fail!' }, status: :not_found
+      return
+    end
+
+    # send download as .txt
+    send_data backup_note.content, filename: "#{backup_note.id}.txt", type: 'text/plain'
+  rescue StandardError => e
+    render json: { error: e.message }, status: :internal_server_error
   end
 
   # Auth actions
   def auth_revoke_session
-    render plain: "auth_revoke_session"
+    session_id = params[:sid]
+    user_id = session[:user]["id"]
+
+    if session_id.blank?
+      return render json: { error: 'Revoke session fail!' }, status: :bad_request
+    end
+
+    UserSessionManager.destroy_session(user_id, session_id)
+    reset_session
+
+    render json: { message: 'Revoke session success!' }, status: :ok
+  end
+rescue StandardError => e
+  render json: { error: e.message }, status: :bad_request
+end
+
+# User actions
+def user_update
+  user_id = session[:user]["id"]
+  user_update_request = UserUpdateRequest.new(params.permit(:email, :password, :avatar))
+
+  unless user_update_request.valid?
+    return render json: { errors: user_update_request.errors.full_messages }, status: :bad_request
   end
 
-  def auth_login
-    render plain: "auth_login"
-  end
+  user = User.find_by(id: user_id)
+  if user
+    user.assign_attributes(
+      email: user_update_request.email.presence ? user_update_request.email : user.email,
+      avatar: user_update_request.avatar.presence ? user_update_request.avatar.url : user.avatar,
+      hash_password: user_update_request.password.presence ? BCrypt::Password.create(user_update_request.password) : user.hash_password
+    )
+    user.save!
 
-  def auth_register
-    render plain: "auth_register"
+    render json: { message: 'Update account success!' }, status: :ok
+  else
+    render json: { error: 'User not found' }, status: :not_found
   end
-
-  def auth_logout
-    render plain: "auth_logout"
-  end
-
-  def auth_forgot_password
-    render plain: "auth_forgot_password"
-  end
-
-  def auth_reset_password
-    render plain: "auth_reset_password"
-  end
-
-  # User actions
-  def user_update
-    render plain: "user_update"
-  end
+rescue ActiveRecord::RecordInvalid => e
+  render json: { errors: e.record.errors.full_messages }, status: :unprocessable_entity
+rescue StandardError => e
+  render json: { errors: [e.message] }, status: :bad_request
 end

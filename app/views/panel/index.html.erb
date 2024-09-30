@@ -1,1 +1,262 @@
-<h1 class="text-4xl ">Page: Panel</h1>
+<div class="m-auto my-2 md:my-8 max-w-7xl">
+  <div class="c-main-area">
+    <div class="flex justify-between gap-3 flex-col md:flex-row">
+      <h3 class="text-2xl inline-flex items-center gap-1 text-zinc-500 hover:text-teal-600 cursor-default transition duration-500">
+        <%= render partial: 'shared/svg/cloud', locals: { class_names: "w-4 h-4" } %>
+        <span class="font-medium">Account<b>Panel</b></span>
+      </h3>
+      <div class="flex gap-4 justify-end">
+        <a href="/" target="_blank" class="inline-flex items-center gap-1 text-sm font-bold cursor-pointer capitalize hover:text-teal-600">
+          <%= render partial: 'shared/svg/notebook', locals: { class_names: "w-4 h-4" } %>
+          write
+        </a>
+        <span onclick="document.location.reload()" class="inline-flex items-center gap-1 text-sm font-bold cursor-pointer capitalize hover:text-teal-600">
+          <%= render partial: 'shared/svg/refresh', locals: { class_names: "w-4 h-4" } %>
+          refresh
+        </span>
+        <a href="/panel/logout" class="inline-flex items-center gap-1 text-sm font-bold cursor-pointer capitalize hover:text-teal-600">
+          <%= render partial: 'shared/svg/logout', locals: { class_names: "w-4 h-4" } %>
+          logout
+        </a>
+      </div>
+    </div>
+    <hr class="my-4"/>
+    <div>
+      <div class="bg-white rounded-lg shadow-md">
+        <!-- Tabs navigation -->
+        <div class="flex bg-gray-200 flex-col md:flex-row">
+          <button class="c-tab active">
+            <%= render partial: 'shared/svg/notebook', locals: { class_names: "w-6 h-6" } %>
+            Notes
+          </button>
+          <button class="c-tab">
+            <%= render partial: 'shared/svg/file_download', locals: { class_names: "w-6 h-6" } %>
+            Backup Notes
+          </button>
+          <button class="c-tab">
+            <%= render partial: 'shared/svg/setting', locals: { class_names: "w-6 h-6" } %>
+            Setting
+          </button>
+        </div>
+        <!-- Tab content -->
+        <div class="py-3 md:px-6">
+          <div class="c-tab-content active">
+            <h2 class="flex items-center justify-center gap-1 text-base md:text-xl border-2 border-dashed border-gray-400 p-1 my-4">
+              <%= render partial: 'shared/svg/notebook', locals: { class_names: "w-6 h-6" } %>
+              All notes your created
+            </h2>
+            <div class="overflow-y-auto border-2 border-solid border-gray-300 rounded">
+              <table id="notes-tb" class="w-full table-auto bg-transparent text-center">
+                <thead>
+                <tr class="border-b-4 border-solid border-gray-400">
+                  <th class="px-4 py-2 text-base capitalize whitespace-nowrap">URL</th>
+                  <th class="px-4 py-2 text-base capitalize whitespace-nowrap">Last Updated</th>
+                  <th class="px-4 py-2 text-base capitalize whitespace-nowrap">Views</th>
+                  <th class="px-4 py-2 text-base capitalize whitespace-nowrap">Password</th>
+                  <th class="px-4 py-2 text-base capitalize whitespace-nowrap">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <% notes.each_with_index do |note, index| %>
+                  <tr class="<%= index.even? ? 'bg-gray-200' : '' %>">
+                    <td class="p-2">
+                      <a class="c-a inline-flex items-center gap-1 underline" href="/<%= note["slug"] %>" target="_blank">
+                        <%= render partial: 'shared/svg/new_tab', locals: { class_names: "w-4 h-4" } %>
+                        <%= note["slug"] %>
+                      </a>
+                    </td>
+                    <td><%= TimeUtils::calculate_elapsed_time(note["updated_at"]) %></td>
+                    <td><%= note["views"] %></td>
+                    <td><%= note["need_password"] ? 'Yes' : 'No' %></td>
+                    <td class="p-2">
+                      <span class="c-btn-outline-sm" onclick="toggleModal('modal_password'); initEventPasswordModal('<%= note["id"] %>', <%= note["need_password"] %>, 'modal_password')">
+                        <%= render partial: 'shared/svg/lock_fill', locals: { class_names: "w-4 h-4" } %>
+                        Password
+                      </span>
+                      <span class="c-btn-outline-sm" onclick="deleteNote('<%= note["id"] %>', event)">
+                        <%= render partial: 'shared/svg/trash', locals: { class_names: "w-4 h-4" } %>
+                        Delete
+                      </span>
+                      <span class="c-btn-outline-sm" onclick="backupNote('<%= note["id"] %>')">
+                        <%= render partial: 'shared/svg/file_download', locals: { class_names: "w-4 h-4" } %>
+                        Backup
+                      </span>
+                      <span class="c-btn-outline-sm" onclick="downloadNote('<%= note["id"] %>')">
+                        <%= render partial: 'shared/svg/download', locals: { class_names: "w-4 h-4" } %>
+                        Download
+                      </span>
+                    </td>
+                  </tr>
+                <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="c-tab-content">
+            <h2 class="flex items-center justify-center gap-1 text-base md:text-xl border-2 border-dashed border-gray-400 p-1 my-4">
+              <%= render partial: 'shared/svg/file_download', locals: { class_names: "w-6 h-6" } %>
+              All notes your backup
+            </h2>
+            <div class="overflow-y-auto border-2 border-solid border-gray-300 rounded">
+              <table id="notes-tb" class="w-full table-auto bg-transparent text-center">
+                <thead>
+                <tr class="border-b-4 border-solid border-gray-400">
+                  <th class="px-4 py-2 text-base capitalize whitespace-nowrap">Unique ID</th>
+                  <th class="px-4 py-2 text-base capitalize whitespace-nowrap">Last backup</th>
+                  <th class="px-4 py-2 text-base capitalize whitespace-nowrap">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <% backup_notes.each_with_index do |note, index| %>
+                  <tr class="<%= index.even? ? 'bg-gray-200' : '' %>">
+                    <td><%= note["id"] %></td>
+                    <td><%= TimeUtils::calculate_elapsed_time(note["updated_at"]) %></td>
+                    <td class="p-2">
+                      <a class="c-btn-outline-sm" href="/user-backup/<%= note["id"] %>" target="_blank">
+                        <%= render partial: 'shared/svg/new_tab', locals: { class_names: "w-4 h-4" } %>
+                        View
+                      </a>
+                      <span class="c-btn-outline-sm" onclick="deleteBackupNote('<%= note["id"] %>', event)">
+                      <%= render partial: 'shared/svg/trash', locals: { class_names: "w-4 h-4" } %>
+                        Delete
+                    </span>
+                      <span class="c-btn-outline-sm" onclick="downloadBackupNote('<%= note["id"] %>')">
+                      <%= render partial: 'shared/svg/download', locals: { class_names: "w-4 h-4" } %>
+                        Download
+                    </span>
+                    </td>
+                  </tr>
+                <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="c-tab-content">
+            <h2 class="flex items-center justify-center gap-1 text-base md:text-xl border-2 border-dashed border-gray-400 p-1 my-4">
+              <%= render partial: 'shared/svg/setting', locals: { class_names: "w-6 h-6" } %>
+              Account Setting
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 grid-flow-row">
+              <!-- Info Card -->
+              <div class="border-solid border-2 border-gray-300 rounded order-1 md:order-1">
+                <div class="flex flex-col items-center gap-2 py-4">
+                  <div class="relative group">
+                    <img src="<%= user["avatar"] %>" alt="avatar" class="w-32 rounded-lg shadow-md">
+                    <label class="absolute top-1 right-1 cursor-pointer hidden group-hover:block">
+                      <%= render partial: 'shared/svg/image_edit', locals: { class_names: "w-6 h-6 text-teal-600" } %>
+                      <input class="hidden" type="file" onchange="uploadImage(event)" accept="image/jpg, image/jpeg, image/png, image/gif, image/webp">
+                    </label>
+                  </div>
+                  <h3 class="text-2xl font-bold"><%= user["username"] %></h3>
+                  <p class="text-center"><b>Registered On</b>: <%= DateTime.parse(user["created_at"]).strftime('%Y-%m-%d') %></p>
+                </div>
+              </div>
+              <!-- General Info -->
+              <div class="border-solid border-2 border-gray-300 rounded order-2 md:order-2">
+                <div class="p-3">
+                  <h3 class="font-bold text-lg uppercase">General Info</h3>
+                  <hr class="my-3">
+                  <form action="" method="post" onsubmit="updateGeneralInfo(event)" class="flex flex-col gap-3">
+                    <div class="flex flex-col gap-1 hover:text-teal-600">
+                      <label class="font-medium" for="email">Email</label>
+                      <input class="c-input" id="email" name="email" type="email" value="<%= user["email"] %>">
+                    </div>
+                    <div class="flex flex-col gap-1 hover:text-teal-600">
+                      <label class="font-medium" for="username">Username</label>
+                      <input class="c-input" id="username" name="username" type="text" value="<%= user["username"] %>" readonly disabled>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <input class="c-btn" type="submit" value="Update Information">
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <!-- Change Password -->
+              <div class="border-solid border-2 border-gray-300 rounded order-3 md:order-4 h-fit">
+                <div class="p-3">
+                  <h3 class="font-bold text-lg uppercase">Change Password</h3>
+                  <hr class="my-3">
+                  <form action="" method="post" onsubmit="updatePassword(event)" class="flex flex-col gap-3">
+                    <div class="flex flex-col gap-1 hover:text-teal-600">
+                      <label class="font-medium" for="password">Password</label>
+                      <input class="c-input" id="password" name="password" type="password">
+                    </div>
+                    <div class="flex flex-col gap-1 hover:text-teal-600">
+                      <label class="font-medium" for="cf_password">Confirm Password</label>
+                      <input class="c-input" id="cf_password" name="cf_password" type="password">
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <input class="c-btn" type="submit" value="Update Password">
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <!-- Sessions -->
+              <div class="border-solid border-2 border-gray-300 rounded order-4 md:order-3">
+                <div class="p-3">
+                  <h3 class="font-bold text-lg uppercase">Sessions</h3>
+                  <hr class="my-3">
+                  <ul class="flex flex-col gap-1">
+                    <% sessions&.each do |_session| %>
+                      <li class="border-dashed border-2 border-gray-400">
+                        <div class="flex items-center gap-2 px-2 py-1">
+                          <%#= DeviceIcons[session[:client][:deviceType]] %>
+                          <div class="flex-grow text-sm ms:text-base">
+                            <% if _session[:is_this_session] %>
+                              <p class="text-sm text-teal-600 font-bold">This Session</p>
+                            <% end %>
+                            <p><%= "#{_session[:client][:ip]} - #{_session[:client][:location]}" %></p>
+                            <p><%= "#{_session[:client][:browser]} on #{_session[:client][:platform]}" %></p>
+                          </div>
+                          <button class="c-btn-outline" title="Revoke" onclick="revokeSession('<%= _session[:session_id] %>', event)">
+                            <%= render partial: 'shared/svg/close', locals: { class_names: "w-4 h-4" } %>
+                            <span class="hidden md:inline">Revoke</span>
+                          </button>
+                        </div>
+                      </li>
+                    <% end %>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Modal Password Options -->
+    <div id="modal_password">
+      <div class="modal_popup hidden min-w-[300px] z-10 bg-gray-100 fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded shadow drop-shadow px-4 py-2">
+        <!-- header -->
+        <div class="flex justify-between">
+          <h3 class="text-base">Password Options</h3>
+          <span class="modal_close c-btn-sm">&times;</span>
+        </div>
+        <!-- body -->
+        <hr class="my-3">
+        <div>
+          <!-- Password no set -->
+          <input class="c-input password-input" placeholder="Password" type="text">
+          <!-- Password set -->
+          <div class="flex justify-evenly">
+            <button class="c-btn remove-pass-btn">
+              <%= render 'shared/svg/circel_minus' %>
+              Remove Password
+            </button>
+          </div>
+        </div>
+        <hr class="my-3">
+        <!-- footer -->
+        <div class="flex justify-between">
+          <button class="modal_close c-btn-outline">Cancel</button>
+          <button class="c-btn set-pass-btn">Set</button>
+        </div>
+      </div>
+      <div class="modal_overplay modal_close hidden z-9 w-[100vw] h-[100vh] fixed top-0 left-0 bg-transparent"></div>
+    </div>
+  </div>
+</div>
+
+<%= javascript_include_tag 'app', 'data-turbolinks-track': 'reload' %>
+<%= javascript_include_tag 'panel', 'data-turbolinks-track': 'reload' %>

@@ -4,6 +4,45 @@ class PanelController < ApplicationController
   before_action :check_panel_login
 
   def index
+    begin
+      user_id = session[:user]["id"]
+
+      user = User
+               .includes(:notes, :backup_notes)
+               .where(id: user_id)
+               .references(:notes, :backup_notes)
+               .order('notes.updated_at DESC, backup_notes.updated_at DESC')
+               .first
+
+      notes = user&.notes&.map do |note|
+        note.as_json(only: [:id, :slug, :views, :need_password, :updated_at])
+      end
+
+      backup_notes = user&.backup_notes&.map do |backup_note|
+        backup_note.as_json(only: [:id, :updated_at])
+      end
+
+      sessions = UserSessionManager.get_sessions(user_id).map do |_session|
+        {
+          session_id: _session["session_id"],
+          user: _session["user"],
+          client: _session["client"],
+          is_this_session: _session["session_id"] == session.id.to_s
+        }
+      end
+
+      render locals: {
+        user: user&.as_json(except: [:notes, :backup_notes, :sessions]),
+        notes: notes,
+        backup_notes: backup_notes,
+        sessions: sessions,
+        # device_icons: DeviceIcons
+      }
+    rescue StandardError => e
+      # render json: { error: e.message }, status: :bad_request
+      raise e
+    end
+
   end
 
   def login
@@ -140,6 +179,13 @@ class PanelController < ApplicationController
 
     flash.now[:success] = { message: "Reset Password success. Go login!" }
     render "reset_password"
+  end
+
+  def logout
+    user_id = session[:user]["id"]
+    UserSessionManager.destroy_session(user_id, session.id.to_s)
+    reset_session
+    redirect_to panel_login_path
   end
 
   def captcha

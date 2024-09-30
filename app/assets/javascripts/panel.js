@@ -192,7 +192,7 @@ function downloadBackupNote(backupNoteId) {
 // REVOKE SESSION
 function revokeSession(sessionId, event) {
     // fetch api to delete note
-    fetch('/api/revoke-session/', {
+    fetch('/api/auth/revoke-session/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sid: sessionId }),
@@ -218,7 +218,7 @@ function updateAccountInfo({ email, password, avatar }) {
 
     if (!email && !password && !avatar) return alert('Change account info fail!');
 
-    fetch('/account', {
+    fetch('/api/user', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, avatar }),

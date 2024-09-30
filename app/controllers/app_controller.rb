@@ -85,6 +85,15 @@ class AppController < ApplicationController
   end
 
   def note_backup
+    backup_note_id = params[:backup_note_id]
+
+    backup_note = BackupNote.find_by(id: backup_note_id)
+
+    if backup_note.nil?
+      render 'errors/404', status: :not_found
+    else
+      render locals: { backup_note: backup_note}, status: :ok
+    end
   end
 
   def not_found

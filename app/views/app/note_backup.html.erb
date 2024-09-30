@@ -1,1 +1,28 @@
-<h1 class="text-4xl ">Page: Note Backup</h1>
+<div class="m-auto my-2 md:my-8 max-w-5xl h-full">
+  <div class="c-main-area border-solid border-1 border-gray-300">
+    <div class="-m-1 sm:-m-2 md:-m-5 flex flex-col h-[106%]">
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg inline-flex items-center gap-1 text-zinc-500 hover:text-teal-600 cursor-default transition duration-500">
+          <%= render partial: 'shared/svg/notebook', locals: { class_names: 'w-4 h-4' } %>
+          <span class="font-medium">Note<b>Pad</b></span>
+        </h3>
+        <span class="inline-flex items-center gap-1 text-sm">
+          <%= render partial: 'shared/svg/archive', locals: { class_names: 'w-4 h-4' } %>
+          User Backup
+        </span>
+      </div>
+      <hr class="mt-2 mb-4">
+      <div class="flex-grow">
+        <pre class="min-h-[400px] max-h-[70vh] md:max-h-[60vh] overflow-x-auto whitespace-pre-wrap text-gray-800" id="pre-text"><%= backup_note.content %></pre>
+      </div>
+      <hr class="my-4">
+      <div>
+						<span class="c-btn-outline-sm float-right" onclick="copyAll('pre-text')">
+							<%= render 'shared/svg/copy' %>
+							Copy All
+						</span>
+      </div>
+    </div>
+  </div>
+</div>
+<%= javascript_include_tag 'app', 'data-turbolinks-track': 'reload' %>
