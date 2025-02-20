@@ -52,7 +52,7 @@ end
 
 gem 'dotenv-rails', groups: [:development, :test, :production]
 
-gem "tailwindcss-rails", "~> 2.7"
+gem "tailwindcss-rails", "~> 4.1"
 
 gem 'nanoid'
 
